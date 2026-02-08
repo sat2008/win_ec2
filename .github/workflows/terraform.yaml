@@ -57,3 +57,31 @@ jobs:
   terraform-apply:
     name: Terraform Apply (Main Merge)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Configure Terraform for private modules
+        run: |
+          mkdir -p ~/.terraform.d
+          echo "provider_installation { network_mirror { url = \"https://${{ secrets.GIT_AUTH_PAT }}:@github.com/\" } direct {} }" > ~/.terraform.d/terraform.rc
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
