@@ -1,5 +1,6 @@
 module "tags" {
-  source          = "../../../modules/tags"
+  #source          = "../../../modules/tags"
+   source = "github.com/sat2008/git_modules//tags"
   tag_environment = "sg"
   tag_suffix      = "zg"
   tag_service     = "inc"
@@ -13,7 +14,8 @@ module "tags" {
 }
 
 module "iam" {
-  source = "../../../modules/iam"
+  #source = "../../../modules/iam"
+  source = "github.com/sat2008/git_modules//iam"
   providers = {
     aws = aws.terra
   }
@@ -22,7 +24,8 @@ module "iam" {
 }
 
 module "sg" {
-  source = "../../../modules/sg"
+  #source = "../../../modules/sg"
+  source = "github.com/sat2008/git_modules//sg"
   providers = {
     aws = aws.terra
   }
@@ -35,7 +38,8 @@ module "sg" {
 }
 
 module "key" {
-  source = "../../../modules/key"
+  #source = "../../../modules/key"
+  source = "github.com/sat2008/git_modules//key"
   providers = {
     aws = aws.terra 
   } 
@@ -44,7 +48,8 @@ module "key" {
 }
 
 module "windows_ec2" {
-  source      = "../../../modules/ec2-win"
+  #source      = "../../../modules/ec2-win"
+  source = "github.com/sat2008/git_modules//ec2-win"
   server_name = "gitt"
    providers = {
     aws = aws.terra 
