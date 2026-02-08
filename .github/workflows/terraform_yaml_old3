@@ -11,11 +11,12 @@ on:
 env:
   AWS_REGION: eu-west-2
   TF_IN_AUTOMATION: true
-  GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}  # Fine-grained PAT
+  GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
 
 permissions:
-  id-token: write   # Required for AWS OIDC
+  id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
 
@@ -25,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Configure GitHub for Private Modules
@@ -43,16 +44,11 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init
-
-      - name: Terraform Validate
-        working-directory: terraform
-        run: terraform validate
+        run: terraform init -var="git_pat=${GIT_PAT}"
 
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform.tfvars"
-
+        run: terraform plan -var="git_pat=${GIT_PAT}"
 
   terraform-apply:
     name: Terraform Apply (Main Merge)
@@ -61,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Configure GitHub for Private Modules
@@ -79,8 +75,8 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init
+        run: terraform init -var="git_pat=${GIT_PAT}"
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+        run: terraform apply -auto-approve -var="git_pat=${GIT_PAT}"
