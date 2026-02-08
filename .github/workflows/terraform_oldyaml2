@@ -9,6 +9,7 @@ on:
       - main
 
 env:
+  TF_WORKING_DIR: terraform
   AWS_REGION: eu-west-2
   TF_IN_AUTOMATION: true
   GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
@@ -29,11 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure GitHub for Private Modules
-        run: |
-          git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
-
-      - name: Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials (OIDC Assume Role)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
@@ -49,8 +46,9 @@ jobs:
       - name: Terraform Plan
         working-directory: terraform
         run: terraform plan -var="git_pat=${GIT_PAT}"
-
+  
   terraform-apply:
+    working-directory: terraform
     name: Terraform Apply (Main Merge)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: terraform-plan
@@ -60,11 +58,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure GitHub for Private Modules
-        run: |
-          git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
-
-      - name: Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials (OIDC Assume Role)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
@@ -74,9 +68,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        working-directory: terraform
         run: terraform init -var="git_pat=${GIT_PAT}"
 
       - name: Terraform Apply
-        working-directory: terraform
         run: terraform apply -auto-approve -var="git_pat=${GIT_PAT}"
