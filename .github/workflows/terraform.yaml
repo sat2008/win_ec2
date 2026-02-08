@@ -12,7 +12,8 @@ env:
   AWS_REGION: eu-west-2
   TF_IN_AUTOMATION: true
   GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}  # Fine-grained PAT
-
+  run: |
+    git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
 permissions:
   id-token: write   # Required for AWS OIDC
   contents: read
