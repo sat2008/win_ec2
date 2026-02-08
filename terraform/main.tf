@@ -5,6 +5,7 @@ module "tags" {
   #source          = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//tags"
   source = "git::ssh://git@github.com/sat2008/git_modules.git//tags"
   #source = "git::https://${var.GIT_PAT}@github.com/sat2008/git_modules.git//tags"
+  tag_environment = "sg"
   tag_suffix      = "zg"
   tag_service     = "inc"
   tag_build       = "manual"
