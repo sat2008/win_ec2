@@ -1,9 +1,4 @@
 
-
-variable "GIT_PAT" {
-  type      = string
-  sensitive = true
-}
 module "tags" {
   #source          = "../../../modules/tags"
   #source = "github.com/sat2008/git_modules//tags"
