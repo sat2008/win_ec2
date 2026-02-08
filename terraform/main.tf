@@ -53,6 +53,7 @@ module "key" {
   #source = "github.com/sat2008/git_modules//key"
   #source = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//key"
   source = "git::ssh://git@github.com/sat2008/git_modules.git//key"
+  key_out_path = "${path.root}/terraform/key.pem" 
   #source = "git::https://${var.GIT_PAT}@github.com/sat2008/git_modules.git//key"
   providers = {
     aws = aws.terra
