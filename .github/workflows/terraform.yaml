@@ -13,7 +13,7 @@ env:
   TF_IN_AUTOMATION: true
 
 permissions:
-  id-token: write   # AWS OIDC
+  id-token: write   # AWS OIDC write
   contents: read
   pull-requests: write     # Required for PR comments
 jobs:
