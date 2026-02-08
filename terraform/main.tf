@@ -24,9 +24,9 @@ module "iam" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//iam"
   #source = "git::https://${var.GIT_PAT}@github.com/sat2008/git_modules.git//iam"
   
-  providers = {
-    aws = aws.terra
-  }
+  # providers = {
+  #   aws = aws.terra
+  # }
 
   tags = module.tags
 }
@@ -37,9 +37,9 @@ module "sg" {
   #source = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//sg"
   source = "git::ssh://git@github.com/sat2008/git_modules.git//sg"
   #source = "git::https://${var.GIT_PAT}@github.com/sat2008/git_modules.git//sg"
-  providers = {
-    aws = aws.terra
-  }
+  # providers = {
+  #   aws = aws.terra
+  # }
 
   vpc_id = data.aws_vpc.existing.id
 
@@ -55,9 +55,9 @@ module "key" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//key"
   key_out_path = "${path.root}/terraform/key.pem" 
   #source = "git::https://${var.GIT_PAT}@github.com/sat2008/git_modules.git//key"
-  providers = {
-    aws = aws.terra
-  }
+  # providers = {
+  #   aws = aws.terra
+  # }
   tags = module.tags
   #kms  = data.aws_kms_key.ebs
 }
@@ -69,9 +69,9 @@ module "windows_ec2" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//ec2-win"
   #source = "git::https://${var.GIT_PAT}@github.com/sat2008/git_modules.git//ec2-win"
   server_name = "gitt"
-  providers = {
-    aws = aws.terra
-  }
+  # providers = {
+  #   aws = aws.terra
+  # }
   #environment        = var.environment
   ami           = var.ami
   instance_type = var.instance_type
