@@ -13,7 +13,7 @@ env:
   TF_IN_AUTOMATION: true
 
 permissions:
-  id-token: write   # For AWS OIDC
+  id-token: write   # AWS OIDC
   contents: read
 
 jobs:
@@ -24,35 +24,55 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # Configure Terraform CLI to use GitHub PAT for private module downloads
-      - name: Configure Terraform for private modules
+      # 2️⃣ Setup SSH for private modules
+      - name: Setup SSH key for GitHub modules
         run: |
-          mkdir -p ~/.terraform.d
-          echo "provider_installation { network_mirror { url = \"https://${{ secrets.GIT_AUTH_PAT }}:@github.com/\" } direct {} }" > ~/.terraform.d/terraform.rc
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
+      # 3️⃣ Configure AWS credentials with OIDC
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
           aws-region: ${{ env.AWS_REGION }}
 
+      # 4️⃣ Setup Terraform CLI
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # 5️⃣ Terraform Init
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
 
+      # 6️⃣ Terraform Validate
       - name: Terraform Validate
         working-directory: terraform
         run: terraform validate
 
+      # 7️⃣ Terraform Plan
       - name: Terraform Plan
+        id: plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform.tfvars"
+        run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
+
+      # 8️⃣ Optional: Comment Plan output on PR
+      - name: Show Terraform Plan in PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "Terraform Plan"
+          message: |
+            ```terraform
+            ${{ steps.plan.outputs.stdout }}
+            ```
 
   terraform-apply:
     name: Terraform Apply (Main Merge)
@@ -61,27 +81,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Configure Terraform for private modules
+      # 2️⃣ Setup SSH for private modules
+      - name: Setup SSH key for GitHub modules
         run: |
-          mkdir -p ~/.terraform.d
-          echo "provider_installation { network_mirror { url = \"https://${{ secrets.GIT_AUTH_PAT }}:@github.com/\" } direct {} }" > ~/.terraform.d/terraform.rc
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
+      # 3️⃣ Configure AWS credentials with OIDC
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
           aws-region: ${{ env.AWS_REGION }}
 
+      # 4️⃣ Setup Terraform CLI
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # 5️⃣ Terraform Init
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
 
+      # 6️⃣ Terraform Apply
       - name: Terraform Apply
         working-directory: terraform
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
