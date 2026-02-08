@@ -40,12 +40,15 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
+        working-directory: terraform
         run: terraform init -var="git_pat=${GIT_PAT}"
 
       - name: Terraform Plan
+        working-directory: terraform
         run: terraform plan -var="git_pat=${GIT_PAT}"
   
   terraform-apply:
+    working-directory: terraform
     name: Terraform Apply (Main Merge)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: terraform-plan
