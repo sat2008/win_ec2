@@ -15,7 +15,7 @@ env:
 permissions:
   id-token: write   # AWS OIDC
   contents: read
-
+  pull-requests: write     # Required for PR comments
 jobs:
 
   terraform-plan:
