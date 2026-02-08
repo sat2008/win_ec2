@@ -1,8 +1,8 @@
 module "tags" {
   #source          = "../../../modules/tags"
   #source = "github.com/sat2008/git_modules//tags"
-  #source          = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//tags"
-  source = "git::https://github.com/sat2008/git_modules.git//tags"
+  source          = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//tags"
+  #source = "git::https://github.com/sat2008/git_modules.git//tags"
   tag_suffix      = "zg"
   tag_service     = "inc"
   tag_build       = "manual"
@@ -17,8 +17,8 @@ module "tags" {
 module "iam" {
   #source = "../../../modules/iam"
   #source = "github.com/sat2008/git_modules//iam"
-  #source = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//iam"
-  source = "git::https://github.com/sat2008/git_modules.git//iam"
+  source = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//iam"
+  #source = "git::https://github.com/sat2008/git_modules.git//iam"
   providers = {
     aws = aws.terra
   }
@@ -29,8 +29,8 @@ module "iam" {
 module "sg" {
   #source = "../../../modules/sg"
   #source = "github.com/sat2008/git_modules//sg"
-  #source = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//sg"
-  source = "git::https://github.com/sat2008/git_modules.git//sg"
+  source = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//sg"
+  #source = "git::https://github.com/sat2008/git_modules.git//sg"
   providers = {
     aws = aws.terra
   }
@@ -45,8 +45,8 @@ module "sg" {
 module "key" {
   #source = "../../../modules/key"
   #source = "github.com/sat2008/git_modules//key"
-  #source = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//key"
-  source = "git::https://github.com/sat2008/git_modules.git//key"
+  source = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//key"
+  #source = "git::https://github.com/sat2008/git_modules.git//key"
   providers = {
     aws = aws.terra
   }
@@ -57,8 +57,8 @@ module "key" {
 module "windows_ec2" {
   #source      = "../../../modules/ec2-win"
   #source = "github.com/sat2008/git_modules//ec2-win"
-  #source      = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//ec2-win"
-  source = "git::https://github.com/sat2008/git_modules.git//ec2-win"
+  source      = "git::https://oauth2:${var.git_pat}@github.com/sat2008/git_modules.git//ec2-win"
+  #source = "git::https://github.com/sat2008/git_modules.git//ec2-win"
   server_name = "gitt"
   providers = {
     aws = aws.terra
