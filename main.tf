@@ -45,7 +45,7 @@ module "key" {
 
 module "windows_ec2" {
   source      = "../../../modules/ec2-win"
-  server_name = "song"
+  server_name = "gitt"
    providers = {
     aws = aws.terra 
   }
