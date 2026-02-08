@@ -1,0 +1,82 @@
+name: Terraform CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: eu-west-2
+  TF_IN_AUTOMATION: true
+  GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+
+  terraform-plan:
+    name: Terraform Plan (PR)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub for Private Modules
+        run: |
+          git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init -var="git_pat=${GIT_PAT}"
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan -var="git_pat=${GIT_PAT}"
+
+  terraform-apply:
+    name: Terraform Apply (Main Merge)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub for Private Modules
+        run: |
+          git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init -var="git_pat=${GIT_PAT}"
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve -var="git_pat=${GIT_PAT}"
