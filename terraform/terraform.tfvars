@@ -24,3 +24,7 @@ instance_type  = "t3.micro"
 ami        = "ami-05d5ef92e8653e623"
 #key       = "my-keypair"
 root_size = "40"
+
+
+# Inject GitHub PAT from GitHub Actions secret
+GIT_PAT = ""  # leave blank, workflow injects it

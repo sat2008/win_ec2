@@ -11,7 +11,6 @@ on:
 env:
   AWS_REGION: eu-west-2
   TF_IN_AUTOMATION: true
-  GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
 
 permissions:
   id-token: write   # For AWS OIDC
@@ -28,14 +27,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # Configure PAT for private module access
-      - name: Configure GitHub PAT
-        working-directory: terraform
-        env:
-          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
-        run: |
-          git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
-
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -47,15 +38,21 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init
+        env:
+          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
+        run: terraform init -var="GIT_PAT=${GIT_PAT}"
 
       - name: Terraform Validate
         working-directory: terraform
-        run: terraform validate
+        env:
+          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
+        run: terraform validate -var="GIT_PAT=${GIT_PAT}"
 
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform.tfvars"
+        env:
+          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
+        run: terraform plan -var="GIT_PAT=${GIT_PAT}" -var-file="terraform.tfvars"
 
   terraform-apply:
     name: Terraform Apply (Main Merge)
@@ -67,13 +64,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Configure GitHub PAT
-        working-directory: terraform
-        env:
-          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
-        run: |
-          git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
-
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -85,8 +75,12 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init
+        env:
+          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
+        run: terraform init -var="GIT_PAT=${GIT_PAT}"
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+        env:
+          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
+        run: terraform apply -auto-approve -var="GIT_PAT=${GIT_PAT}" -var-file="terraform.tfvars"
