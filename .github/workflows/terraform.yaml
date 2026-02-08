@@ -9,6 +9,7 @@ on:
       - main
 
 env:
+  TF_WORKING_DIR: terraform
   AWS_REGION: eu-west-2
   TF_IN_AUTOMATION: true
   GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
