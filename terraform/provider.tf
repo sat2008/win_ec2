@@ -13,6 +13,6 @@ provider "aws" {
   region = var.region
 
   assume_role {
-    role_arn = "arn:aws:iam::508261694247:role/Terra_user_role" # var.terra_role_arn
+    role_arn = "arn:aws:iam::508261694247:role/GithubTerraformRole" #"arn:aws:iam::508261694247:role/Terra_user_role" # var.terra_role_arn
   }
 }
