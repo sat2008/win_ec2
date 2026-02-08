@@ -7,7 +7,10 @@
 provider "aws" {
   region = var.region
 }
-
+provider "aws" {
+  alias  = "terra"
+  region = var.region
+}
 # provider "aws" {
 #   alias  = "terra"
 #   region = var.region
