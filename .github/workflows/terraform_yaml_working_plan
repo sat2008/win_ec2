@@ -13,10 +13,9 @@ env:
   TF_IN_AUTOMATION: true
 
 permissions:
-  id-token: write          # Required for AWS OIDC
+  id-token: write   # AWS OIDC
   contents: read
-  pull-requests: write     # Required to comment on PRs
-
+  pull-requests: write     # Required for PR comments
 jobs:
 
   terraform-plan:
@@ -29,8 +28,8 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup SSH for private GitHub modules
-      - name: Setup SSH key
+      # 2️⃣ Setup SSH for private modules
+      - name: Setup SSH key for GitHub modules
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
@@ -64,9 +63,9 @@ jobs:
         working-directory: terraform
         run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
 
-      # 8️⃣ Post Terraform Plan to PR
+      # 8️⃣ Optional: Comment Plan output on PR
       - name: Show Terraform Plan in PR
-        if: github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: "Terraform Plan"
@@ -76,20 +75,18 @@ jobs:
             ```
 
   terraform-apply:
-    name: Terraform Apply (Post-Merge)
+    name: Terraform Apply (Main Merge)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: terraform-plan
     runs-on: ubuntu-latest
-    environment:
-      name: production   # Optional: requires manual approval if environment has reviewers
 
     steps:
       # 1️⃣ Checkout repository
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup SSH for private GitHub modules
-      - name: Setup SSH key
+      # 2️⃣ Setup SSH for private modules
+      - name: Setup SSH key for GitHub modules
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
