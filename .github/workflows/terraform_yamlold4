@@ -11,10 +11,10 @@ on:
 env:
   AWS_REGION: eu-west-2
   TF_IN_AUTOMATION: true
-  GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
-
+  GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}  # Fine-grained PAT
+  
 permissions:
-  id-token: write   # For AWS OIDC
+  id-token: write   # Required for AWS OIDC
   contents: read
 
 jobs:
@@ -28,11 +28,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # Configure PAT for private module access
-      - name: Configure GitHub PAT
-        working-directory: terraform
-        env:
-          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
+      - name: Configure GitHub for Private Modules
         run: |
           git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
 
@@ -57,6 +53,7 @@ jobs:
         working-directory: terraform
         run: terraform plan -var-file="terraform.tfvars"
 
+
   terraform-apply:
     name: Terraform Apply (Main Merge)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -67,10 +64,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Configure GitHub PAT
-        working-directory: terraform
-        env:
-          GIT_PAT: ${{ secrets.GIT_AUTH_PAT }}
+      - name: Configure GitHub for Private Modules
         run: |
           git config --global url."https://${GIT_PAT}:@github.com/".insteadOf "https://github.com/"
 
