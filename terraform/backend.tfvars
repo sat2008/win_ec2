@@ -3,5 +3,5 @@
     region         = "eu-west-2"
     dynamodb_table = "terraform-locks"
     encrypt        = true
-    #role_arn       = "arn:aws:iam::508261694247:role/Terra_user_role"
+    #role_arn       = "arn:aws:iam::508261694247:role/Terra_user_rorrrle"
     
