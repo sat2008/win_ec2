@@ -1,7 +1,10 @@
+    
+terraform {
+  backend "s3" {
     bucket         = "terraform-state-repo-sg"
-    key            = "winec2/terraform.tfstate"
+    key            = "git/winec2/terraform.tfstate"
     region         = "eu-west-2"
     dynamodb_table = "terraform-locks"
     encrypt        = true
-    #role_arn       = "arn:aws:iam::508261694247:role/Terra_user_rorrrle"
-    
+  }
+}
