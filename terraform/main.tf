@@ -40,7 +40,6 @@ module "key" {
   #   aws = aws.terra
   # }
   tags = module.tags
-  #kms  = data.aws_kms_key.ebs
 }
 
 module "windows_ec2" {
@@ -49,7 +48,6 @@ module "windows_ec2" {
   # providers = {
   #   aws = aws.terra
   # }
-  #environment        = var.environment
   ami           = var.ami
   instance_type = var.instance_type
   subnet_id     = data.aws_subnets.private.ids[0] # pick first private subnet
