@@ -136,7 +136,7 @@ jobs:
           version: latest
       - name: Execute TFLint
         working-directory: terraform
-        run: tflint --module
+        run: tflint --call-module-type=all
 
       # Terraform Plan
       - name: Terraform Plan
