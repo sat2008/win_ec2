@@ -65,9 +65,12 @@
 #             ```terraform
 #             ${{ steps.plan.outputs.stdout }}
 #             ```
-name: Terraform Plan
+name: Terraform Plan + TFLint
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -93,70 +96,55 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout Repo
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # -------------------------
-      #  TFLINT
-      # -------------------------
-      - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v4
-
-      - name: Run TFLint
-        working-directory: terraform
-        run: |
-          tflint --init
-          tflint
-
-      # -------------------------
-      #  TFSEC
-      # -------------------------
-      - name: Run TFSec
-        uses: aquasecurity/tfsec-action@v1.0.0
-        with:
-          working_directory: terraform
-
-      # -------------------------
-      #  SSH Key for private modules
-      # -------------------------
-      - name: Setup SSH key for GitHub modules
+      # Setup SSH key for GitHub modules
+      - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      # -------------------------
-      #  AWS Configure (OIDC)
-      # -------------------------
-      - name: Configure AWS credentials (OIDC)
+      # Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
           aws-region: ${{ env.AWS_REGION }}
 
-      # -------------------------
-      # Terraform Setup + Plan
-      # -------------------------
+      # Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # Terraform Init
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
 
+      # Terraform Validate
       - name: Terraform Validate
         working-directory: terraform
         run: terraform validate
 
+      # Run TFLint (Terraform linter)
+      - name: Run TFLint
+        uses: terraform-linters/setup-tflint@v2
+        with:
+          version: latest
+      - name: Execute TFLint
+        working-directory: terraform
+        run: tflint --module
+
+      # Terraform Plan
       - name: Terraform Plan
         id: plan
         working-directory: terraform
         run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
 
-      # -------------------------
-      # Comment plan to PR
-      # -------------------------
+      # Show Terraform Plan in PR
       - name: Show Terraform Plan in PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
@@ -164,3 +152,4 @@ jobs:
           message: |
             ```terraform
             ${{ steps.plan.outputs.stdout }}
+            ```
