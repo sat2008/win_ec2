@@ -20,7 +20,7 @@ egress_rules = [
   }
 ]
 
-instance_type  = "t3.micro"
+instance_type  = "t3.miccro"
 ami        = "ami-05d5ef92e8653e623"
 #key       = "my-keypair"
 root_size = "40"
