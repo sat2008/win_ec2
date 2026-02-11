@@ -23,7 +23,7 @@ module "iam" {
 
   tags = module.tags
 }
-#Mytag modules cretae server name "sg"
+#security group  "sg"
 module "sg" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//sg"
 
@@ -45,7 +45,7 @@ module "key" {
 
 module "windows_ec2" {
   source      = "git::ssh://git@github.com/sat2008/git_modules.git//ec2-win"
-  server_name = "gitt"
+  server_name = "tec"
   # providers = {
   #   aws = aws.terra
   # }
