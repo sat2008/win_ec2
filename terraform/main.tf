@@ -47,7 +47,6 @@ module "key" {
 module "windows_ec2" {
   source      = "git::ssh://git@github.com/sat2008/git_modules.git//ec2-win"
   server_name = "tec"
-  main
   # providers = {
   #   aws = aws.terra
   # }
