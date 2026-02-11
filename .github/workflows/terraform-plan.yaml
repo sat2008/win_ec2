@@ -133,7 +133,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform.tfvars" -lock=false -out=tfplan.binary
+        run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
 
       # Post Terraform Plan to PR
       - name: Post Terraform Plan as PR Comment
@@ -151,18 +151,18 @@ jobs:
         with:
           tflint_version: latest
 
-      # Run TFLint and save output
+      # Run TFLint, convert JSON to readable text
       - name: Run TFLint
         id: tflint
         working-directory: terraform
         run: |
-          tflint --call-module-type=all --format json > tflint.json
-          # Convert JSON to readable text for PR comment with color codes
+          tflint --module --format json > tflint.json
+          # Convert JSON to readable text with emojis
           jq -r '.[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))" else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end' tflint.json > tflint-output.txt
           cat tflint-output.txt
 
       # Post TFLint results to PR
-      - name: Post TFLint Results as PR Comment
+      - name: Post TFLint Results to PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: "TFLint Results"
@@ -175,8 +175,8 @@ jobs:
       - name: Fail on TFLint Errors
         run: |
           if grep -q "❌ ERROR" terraform/tflint-output.txt; then
-            echo "TFLint detected ERROR-level issues. Please fix them."
+            echo "TFLint detected ERROR-level issues. See PR comment."
             exit 1
           else
             echo "No TFLint errors found."
-          fi
+
