@@ -13,7 +13,7 @@ module "tags" {
 
 }
 
-#Mytag modules cretae server name "LPChange2"
+#Mytag modules cretae server name "back to my joy"
 module "iam" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//iam"
 
@@ -38,7 +38,7 @@ module "key" {
   source       = "git::ssh://git@github.com/sat2008/git_modules.git//key"
   key_out_path = "${path.root}/terraform/key.pem"
   # providers = {
-  #   aws = aws.terra **888"
+  #   aws = aws.terra **New CHange"
   # }
   tags = module.tags
 }
