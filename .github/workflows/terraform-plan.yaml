@@ -91,11 +91,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
+      # 1. Checkout repo
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # Setup SSH key for GitHub modules
+      # 2. Setup SSH key for GitHub modules
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
@@ -103,34 +103,34 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      # Configure AWS credentials (OIDC)
+      # 3. Configure AWS credentials (OIDC)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
           aws-region: ${{ env.AWS_REGION }}
 
-      # Setup Terraform
+      # 4. Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Terraform Init
+      # 5. Terraform Init
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
 
-      # Terraform Validate
+      # 6. Terraform Validate
       - name: Terraform Validate
         working-directory: terraform
         run: terraform validate
 
-      # Terraform Plan
+      # 7. Terraform Plan
       - name: Terraform Plan
         id: plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform.tfvars" -lock=false -out=tfplan.binary 
+        run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
 
-      # Post Terraform Plan to PR
+      # 8. Post Terraform Plan as PR comment
       - name: Post Terraform Plan as PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         with:
@@ -140,31 +140,34 @@ jobs:
             ${{ steps.plan.outputs.stdout }}
             ```
 
-      # Setup TFLint (this installs it)
+      # 9. Setup TFLint (installs it)
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v2
         with:
           tflint_version: latest
 
-      # Initialize TFLint plugins
+      # 10. Initialize TFLint plugins
       - name: Initialize TFLint Plugins
         working-directory: terraform
         run: tflint --init
 
-      # Run TFLint and parse issues/errors
+      # 11. Run TFLint and parse JSON output
       - name: Run TFLint
         id: tflint
         working-directory: terraform
         run: |
           tflint --format json | tee tflint.json
+          # Parse issues
           jq -r '
-            .issues[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))" 
+            .issues[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))"
                          else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end
           ' tflint.json > tflint-issues.txt
+          # Parse plugin errors
           jq -r '.errors[] | "❌ ERROR: \(.message)"' tflint.json >> tflint-issues.txt
+          # Display in logs
           cat tflint-issues.txt
 
-      # Post TFLint results to PR
+      # 12. Post TFLint results to PR
       - name: Post TFLint Results to PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
@@ -174,7 +177,7 @@ jobs:
             ${{ steps.tflint.outputs.stdout || steps.tflint.outputs['tflint-issues.txt'] }}
             ```
 
-      # Fail workflow if TFLint detected any ERROR
+      # 13. Fail workflow if TFLint detected any ERROR
       - name: Fail on TFLint Errors
         run: |
           if grep -q "❌ ERROR" terraform/tflint-issues.txt; then
