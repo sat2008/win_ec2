@@ -145,21 +145,21 @@ jobs:
             ${{ steps.plan.outputs.stdout }}
             ```
 
-      # Setup TFLint
-      - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v2
-        with:
-          tflint_version: latest
-
-      # Run TFLint, convert JSON to readable text
       - name: Run TFLint
         id: tflint
         working-directory: terraform
         run: |
+          # Initialize plugins
+          tflint --init
+          # Run TFLint and save JSON
           tflint --format json | tee tflint.json
-          # Convert JSON to readable text with emojis
-          jq -r '.[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))" else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end' tflint.json > tflint-output.txt
-          cat tflint-output.txt
+          # Parse issues and errors
+          jq -r '
+            .issues[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))" 
+                        else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end
+          ' tflint.json > tflint-issues.txt
+          jq -r '.errors[] | "❌ ERROR: \(.message)"' tflint.json >> tflint-issues.txt
+          cat tflint-issues.txt
 
       # Post TFLint results to PR
       - name: Post TFLint Results to PR
