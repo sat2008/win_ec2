@@ -38,7 +38,7 @@ module "key" {
   source       = "git::ssh://git@github.com/sat2008/git_modules.git//key"
   key_out_path = "${path.root}/terraform/key.pem"
   # providers = {
-  #   aws = aws.terra **New CHange"
+  #   aws = aws.terra **Newdddd"
   # }
   tags = module.tags
 }
