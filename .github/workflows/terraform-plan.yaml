@@ -65,13 +65,13 @@
 #             ```terraform
 #             ${{ steps.plan.outputs.stdout }}
 #             ```
-name: Terraform Plan + TFLint
+name: Terraform Plan + TFLint Checks
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-  pull_request:
+  push:
     branches:
       - main
   workflow_dispatch:
@@ -91,12 +91,12 @@ permissions:
   pull-requests: write
 
 jobs:
-  terraform-plan:
-    name: Terraform Plan (PR)
+  terraform:
+    name: Terraform Plan + TFLint
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout Repo
+      # Checkout repo
       - name: Checkout Repo
         uses: actions/checkout@v4
 
@@ -129,23 +129,14 @@ jobs:
         working-directory: terraform
         run: terraform validate
 
-      # Run TFLint (Terraform linter)
-      - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v2
-        with:
-          tflint_version: latest
-      - name: Execute TFLint
-        working-directory: terraform
-        run: tflint --call-module-type=all
-
       # Terraform Plan
       - name: Terraform Plan
         id: plan
         working-directory: terraform
         run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
 
-      # Show Terraform Plan in PR
-      - name: Show Terraform Plan in PR
+      # Post Terraform Plan to PR
+      - name: Post Terraform Plan as PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: "Terraform Plan"
@@ -153,3 +144,39 @@ jobs:
             ```terraform
             ${{ steps.plan.outputs.stdout }}
             ```
+
+      # Setup TFLint
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v2
+        with:
+          tflint_version: latest
+
+      # Run TFLint and save output
+      - name: Run TFLint
+        id: tflint
+        working-directory: terraform
+        run: |
+          tflint --module --format json > tflint.json
+          # Convert JSON to readable text for PR comment with color codes
+          jq -r '.[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))" else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end' tflint.json > tflint-output.txt
+          cat tflint-output.txt
+
+      # Post TFLint results to PR
+      - name: Post TFLint Results as PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "TFLint Results"
+          message: |
+            ```text
+            ${{ steps.tflint.outputs.stdout || steps.tflint.outputs['tflint-output.txt'] }}
+            ```
+
+      # Fail workflow if TFLint detected any ERROR
+      - name: Fail on TFLint Errors
+        run: |
+          if grep -q "❌ ERROR" terraform/tflint-output.txt; then
+            echo "TFLint detected ERROR-level issues. Please fix them."
+            exit 1
+          else
+            echo "No TFLint errors found."
+          fi
