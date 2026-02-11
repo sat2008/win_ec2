@@ -130,10 +130,10 @@ jobs:
         run: terraform validate
 
       # Run TFLint (Terraform linter)
-      - name: Run TFLint
+      - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v2
         with:
-          version: latest
+          tflint_version: latest
       - name: Execute TFLint
         working-directory: terraform
         run: tflint --call-module-type=all
