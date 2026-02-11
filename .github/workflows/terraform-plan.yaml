@@ -156,7 +156,7 @@ jobs:
         id: tflint
         working-directory: terraform
         run: |
-          tflint --module --format json > tflint.json
+          tflint --call-module-type=all --format json > tflint.json
           # Convert JSON to readable text with emojis
           jq -r '.[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))" else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end' tflint.json > tflint-output.txt
           cat tflint-output.txt
