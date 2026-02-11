@@ -1,5 +1,4 @@
-
-# Server name "myJoyS"
+#Mytag modules cretae server name "LP_change3"
 module "tags" {
   source          = "git::ssh://git@github.com/sat2008/git_modules.git//tags"
   tag_environment = "sg"
@@ -14,7 +13,7 @@ module "tags" {
 
 }
 
-#Mytag modules cretae server name "Laptop"
+#Mytag modules cretae server name "back to my joy"
 module "iam" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//iam"
 
@@ -24,7 +23,7 @@ module "iam" {
 
   tags = module.tags
 }
-
+#Mytag modules cretae server name "sg"
 module "sg" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//sg"
 
@@ -40,7 +39,7 @@ module "key" {
   source       = "git::ssh://git@github.com/sat2008/git_modules.git//key"
   key_out_path = "${path.root}/terraform/key.pem"
   # providers = {
-  #   aws = aws.terra
+  #   aws = aws.terra **Newdddd"
   # }
   tags = module.tags
 }
@@ -53,7 +52,7 @@ module "windows_ec2" {
   # }
   ami           = var.ami
   instance_type = var.instance_type
-  subnet_id     = data.aws_subnets.private.ids[0] # pick first private subnet
+  subnet_id     = data.aws_subnets.private.ids[0] # pick first private
   #vpc_id             = data.aws_vpc.existing.id
   key               = module.key
   tags              = module.tags

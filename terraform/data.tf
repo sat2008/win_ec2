@@ -1,8 +1,8 @@
 # --------------------------------------------------
-# Look up existing VPC by ID or Name
+# Look up existing VPC by ID or Name *****
 # --------------------------------------------------
 data "aws_vpc" "existing" {
-  id = "vpc-013f436261a3d2c8a"  # or use filter by Name tag
+  id = "vpc-013f436261a3d2c8a"  # filter by Name tag
   # OR use filter:
   # filter {
   #   name   = "tag:Name"
