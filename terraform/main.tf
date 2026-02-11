@@ -1,4 +1,4 @@
-#Mytag modules cretae server name "LP_change1"
+#Mytag modules cretae server name "LP_change3"
 module "tags" {
   source          = "git::ssh://git@github.com/sat2008/git_modules.git//tags"
   tag_environment = "sg"
@@ -38,7 +38,7 @@ module "key" {
   source       = "git::ssh://git@github.com/sat2008/git_modules.git//key"
   key_out_path = "${path.root}/terraform/key.pem"
   # providers = {
-  #   aws = aws.terra
+  #   aws = aws.terra **888"
   # }
   tags = module.tags
 }
