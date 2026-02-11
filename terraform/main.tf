@@ -51,7 +51,7 @@ module "windows_ec2" {
   # }
   ami           = var.ami
   instance_type = var.instance_type
-  subnet_id     = data.aws_subnets.private.ids[0]
+  subnet_id     = data.aws_subnets.private.ids[0] # pick first private
   #vpc_id             = data.aws_vpc.existing.id
   key               = module.key
   tags              = module.tags
