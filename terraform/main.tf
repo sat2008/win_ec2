@@ -1,5 +1,4 @@
-
-#Mytag modules cretae server name "laptopchagesLP_change1"
+#Mytag modules cretae server name "LP_change1"
 module "tags" {
   source          = "git::ssh://git@github.com/sat2008/git_modules.git//tags"
   tag_environment = "sg"
@@ -14,7 +13,7 @@ module "tags" {
 
 }
 
-#Mytag modules cretae server name "laptopchages"
+#Mytag modules cretae server name "LPChange2"
 module "iam" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//iam"
 
