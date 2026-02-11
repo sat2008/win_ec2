@@ -1,5 +1,5 @@
 
-#Mytag modules cretae server name "MyJoyBranch chages"
+#Mytag modules cretae server name "laptopchages"
 module "tags" {
   source          = "git::ssh://git@github.com/sat2008/git_modules.git//tags"
   tag_environment = "sg"
@@ -14,7 +14,7 @@ module "tags" {
 
 }
 
-#Mytag modules cretae server name "MyJoyBranch chages"
+#Mytag modules cretae server name "laptopchages"
 module "iam" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//iam"
 
@@ -24,7 +24,7 @@ module "iam" {
 
   tags = module.tags
 }
-
+#Mytag modules cretae server name "sg"
 module "sg" {
   source = "git::ssh://git@github.com/sat2008/git_modules.git//sg"
 
