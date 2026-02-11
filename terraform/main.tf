@@ -9,7 +9,7 @@ module "tags" {
   tag_owner       = "Soner"
   tag_description = "SG-Infra"
   tag_role        = "Infra"
-  tag_application = "SG-BaseInfrastructure"
+  tag_application = "SG-Boss"
 
 }
 
@@ -46,7 +46,7 @@ module "key" {
 
 module "windows_ec2" {
   source      = "git::ssh://git@github.com/sat2008/git_modules.git//ec2-win"
-  server_name = "gitt"
+  server_name = "son"
   # providers = {
   #   aws = aws.terra
   # }
