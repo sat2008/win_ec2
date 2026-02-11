@@ -75,11 +75,6 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment'
-        required: false
-        default: 'dev'
 
 env:
   AWS_REGION: eu-west-2
@@ -133,7 +128,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform.tfvars" -lock=false -out=tfplan.binary
+        run: terraform plan -var-file="terraform.tfvars" -lock=false -out=tfplan.binary 
 
       # Post Terraform Plan to PR
       - name: Post Terraform Plan as PR Comment
@@ -145,18 +140,26 @@ jobs:
             ${{ steps.plan.outputs.stdout }}
             ```
 
+      # Setup TFLint (this installs it)
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v2
+        with:
+          tflint_version: latest
+
+      # Initialize TFLint plugins
+      - name: Initialize TFLint Plugins
+        working-directory: terraform
+        run: tflint --init
+
+      # Run TFLint and parse issues/errors
       - name: Run TFLint
         id: tflint
         working-directory: terraform
         run: |
-          # Initialize plugins
-          tflint --init
-          # Run TFLint and save JSON
           tflint --format json | tee tflint.json
-          # Parse issues and errors
           jq -r '
             .issues[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))" 
-                        else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end
+                         else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end
           ' tflint.json > tflint-issues.txt
           jq -r '.errors[] | "❌ ERROR: \(.message)"' tflint.json >> tflint-issues.txt
           cat tflint-issues.txt
@@ -168,13 +171,13 @@ jobs:
           header: "TFLint Results"
           message: |
             ```text
-            ${{ steps.tflint.outputs.stdout || steps.tflint.outputs['tflint-output.txt'] }}
+            ${{ steps.tflint.outputs.stdout || steps.tflint.outputs['tflint-issues.txt'] }}
             ```
 
       # Fail workflow if TFLint detected any ERROR
       - name: Fail on TFLint Errors
         run: |
-          if grep -q "❌ ERROR" terraform/tflint-output.txt; then
+          if grep -q "❌ ERROR" terraform/tflint-issues.txt; then
             echo "TFLint detected ERROR-level issues. See PR comment."
             exit 1
           else
