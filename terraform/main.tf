@@ -1,8 +1,5 @@
 
-<<<<<<< HEAD
-=======
 # Server name "myJoyS"
->>>>>>> 55eeaea82723acbc17cb13a75d41bd3781360fb3
 module "tags" {
   source          = "git::ssh://git@github.com/sat2008/git_modules.git//tags"
   tag_environment = "sg"
