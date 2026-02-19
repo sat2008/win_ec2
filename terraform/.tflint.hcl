@@ -1,5 +1,7 @@
 plugin "aws" {
   enabled = true
+  version = "0.35.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-aws"
 }
 
 # Ignore minor warnings
@@ -20,4 +22,9 @@ rule "terraform_typed_variables" {
 rule "terraform_deprecated_resource" {
   enabled  = true
   severity = "ERROR"
+}
+
+# Enable module scanning
+config {
+  module = true
 }
