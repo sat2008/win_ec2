@@ -8,10 +8,10 @@ variable "region" {
   default = "eu-west-2"
 }
 
-variable "profile" {
-  type    = string
-  default = null
-}
+# variable "profile" {
+#   type    = string
+#   default = null
+# }
 
 variable "additional_disks" {
   description = "Optional additional EBS disks"
@@ -35,7 +35,15 @@ variable "egress_rules" { type = list(any) }
 #variable "tags" {}
 #variable "instance_profile" {}
 variable "instance_type" {
-  #default = "t2.micro"
+  type        = string
+  description = "EC2 instance type"
+
+  validation {
+    condition     = contains(["t3.micro","t3.small","m5.large"], var.instance_type)
+    error_message = "Invalid instance type."
+  }
+
+  default = "t3.micro"
 }
 variable "ami" {type = string}
 #variable "key" {}
