@@ -1,0 +1,61 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:   # Manual trigger
+    inputs:
+      confirm:
+        description: 'Type "yes" to confirm destroy'
+        required: true
+
+env:
+  AWS_REGION: eu-west-2
+  TF_IN_AUTOMATION: true
+
+permissions:
+  id-token: write   # AWS OIDC
+  contents: read
+
+jobs:
+  terraform-destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.confirm == 'yes' }}
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup SSH for private modules
+      - name: Setup SSH key for GitHub modules
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      # 3️⃣ Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 4️⃣ Setup Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 5️⃣ Terraform Init with remote backend
+      - name: Terraform Init
+        working-directory: terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=terraform-state-repo-sg" \
+            -backend-config="key=git/winec2/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+      # 6️⃣ Terraform Destroy
+      - name: Terraform Destroy
+        working-directory: terraform
+        run: terraform destroy -auto-approve -var-file="terraform.tfvars" -lock-timeout=5m
