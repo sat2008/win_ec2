@@ -8,15 +8,6 @@ plugin "aws" {
 }
 
 #########################################
-# AZURE RULESET PLUGIN
-#########################################
-plugin "azurerm" {
-  enabled = true
-  version = "0.33.0"
-  source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
-}
-
-#########################################
 # TFLINT CONFIG (v0.54+)
 #########################################
 config {
@@ -47,11 +38,6 @@ rule "terraform_typed_variables" {
 # PLUGIN RULES — severity allowed
 #########################################
 rule "aws_instance_invalid_type" {
-  enabled  = true
-  severity = "ERROR"
-}
-
-rule "azurerm_resource_group_default_location" {
   enabled  = true
   severity = "ERROR"
 }
