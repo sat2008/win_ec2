@@ -1,6 +1,6 @@
 region      = "eu-west-2"
 #environment = "dev"
-profile = "terra"  
+#profile = "terra"  
 
 ingress_rules = [
   {
