@@ -18,17 +18,19 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: terraform-${{ github.ref }}   # ensures only one workflow per branch
+  cancel-in-progress: true             # cancels previous runs to prevent lock conflicts
+
 jobs:
   terraform-plan:
     name: Terraform Plan + TFLint
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # 2. SSH for GitHub modules
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
@@ -36,40 +38,33 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      # 3. AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
           aws-region: ${{ env.AWS_REGION }}
 
-      # 4. Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # 5. Terraform Init
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
 
-      # 6. Terraform Validate
       - name: Terraform Validate
         working-directory: terraform
         run: terraform validate
 
-      # 7. Terraform Plan
       - name: Terraform Plan
         id: plan
         working-directory: terraform
         run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
 
-      # 8. Setup TFLint
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v2
         with:
           tflint_version: latest
 
-      # 9. Run TFLint
       - name: Run TFLint
         id: tflint
         working-directory: terraform
@@ -82,36 +77,45 @@ jobs:
           jq -r '.errors[] | "❌ ERROR: \(.message)"' tflint.json >> tflint-issues.txt
           cat tflint-issues.txt
 
-      # 10. Fail workflow on TFLint errors
+      - name: Post Plan & TFLint as PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "Terraform Plan & TFLint Results"
+          message: |
+            ```terraform
+            ${{ steps.plan.outputs.stdout || '' }}
+            ```
+            ```text
+            $(cat terraform/tflint-issues.txt)
+            ```
+
       - name: Fail on TFLint Errors
         run: |
           if grep -q "❌ ERROR" terraform/tflint-issues.txt; then
-            echo "TFLint detected ERROR-level issues."
+            echo "TFLint detected ERROR-level issues. Please fix before merging."
             exit 1
-          else
-            echo "No TFLint errors found."
           fi
 
   terraform-apply:
     name: Terraform Apply (Post-Merge)
     runs-on: ubuntu-latest
-    needs: terraform-plan       # <-- wait for plan
+    needs: terraform-plan
     if: github.ref == 'refs/heads/main'
     environment:
-      name: production          # optional manual approval
+      name: production   # optional manual approval
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup SSH key for GitHub modules
+      - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      - name: Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
