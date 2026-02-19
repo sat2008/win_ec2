@@ -1,0 +1,140 @@
+name: Terraform CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-west-2
+  TF_IN_AUTOMATION: true
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan (PR)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key for GitHub modules
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: terraform
+        run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
+
+      # ---------------------------
+      # TFLint checks
+      # ---------------------------
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v2
+        with:
+          tflint_version: latest
+
+      - name: Initialize TFLint Plugins
+        working-directory: terraform
+        run: tflint --init
+
+      - name: Run TFLint
+        id: tflint
+        working-directory: terraform
+        run: |
+          tflint --format json | tee tflint.json
+          jq -r '
+            .issues[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))"
+                         else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end
+          ' tflint.json > tflint-issues.txt
+          jq -r '.errors[] | "❌ ERROR: \(.message)"' tflint.json >> tflint-issues.txt
+          cat tflint-issues.txt
+
+      - name: Fail workflow on TFLint errors
+        run: |
+          if grep -q "❌ ERROR" terraform/tflint-issues.txt; then
+            echo "TFLint detected errors."
+            exit 1
+          fi
+
+      - name: Post Plan + TFLint Results to PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "Terraform Plan + TFLint"
+          message: |
+            ```terraform
+            ${{ steps.plan.outputs.stdout }}
+            ```
+            ```text
+            $(cat terraform/tflint-issues.txt)
+            ```
+
+  terraform-apply:
+    name: Terraform Apply (Post-Merge)
+    runs-on: ubuntu-latest
+    needs: terraform-plan       # Waits for Plan to complete
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production          # optional manual approval
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key for GitHub modules
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
