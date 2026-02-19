@@ -37,7 +37,7 @@ variable "egress_rules" { type = list(any) }
 variable "instance_type" {
   #default = "t2.micro"
 }
-variable "ami" {}
+variable "ami" {type = string}
 #variable "key" {}
 variable "root_size" {}
 #variable "kms" {}
