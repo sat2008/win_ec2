@@ -1,5 +1,5 @@
 #########################################
-# AWS Rule Plugin
+# AWS RULESET PLUGIN
 #########################################
 plugin "aws" {
   enabled = true
@@ -8,7 +8,7 @@ plugin "aws" {
 }
 
 #########################################
-# CORE TERRAFORM RULE CONFIG (VALID)
+# TERRAFORM CORE RULE SETTINGS
 #########################################
 
 # Disable noisy minor warnings
@@ -16,27 +16,27 @@ rule "terraform_unused_declarations" {
   enabled = false
 }
 
+# This rule DOES NOT support severity (TFLint limitation)
 rule "terraform_module_pinned_source" {
-  enabled = true        # Enterprise: require pinning sources
-  severity = "ERROR"
+  enabled = true
 }
 
-# Enterprise: enforce typed variables
+# Enforce typed variables (supports severity)
 rule "terraform_typed_variables" {
-  enabled = true
+  enabled  = true
   severity = "ERROR"
 }
 
-# Enterprise: require explicit provider version pinning
+# Enforce provider version pinning (supports severity)
 rule "terraform_required_providers" {
-  enabled = true
+  enabled  = true
   severity = "ERROR"
 }
 
 #########################################
-# TFLINT v0.54+ CONFIG (CRITICAL)
+# TFLINT v0.54+ CONFIG (MANDATORY)
 #########################################
-# Allowed: all, local, none
+# Allowed values: all, local, none
 config {
   call_module_type = "all"
 }
