@@ -1,30 +1,42 @@
+#########################################
+# AWS Rule Plugin
+#########################################
 plugin "aws" {
   enabled = true
   version = "0.35.0"
   source  = "github.com/terraform-linters/tflint-ruleset-aws"
 }
 
-# Ignore minor warnings
+#########################################
+# CORE TERRAFORM RULE CONFIG (VALID)
+#########################################
+
+# Disable noisy minor warnings
 rule "terraform_unused_declarations" {
   enabled = false
 }
 
 rule "terraform_module_pinned_source" {
-  enabled = false
+  enabled = true        # Enterprise: require pinning sources
+  severity = "ERROR"
 }
 
-# Fail workflow for critical rules
+# Enterprise: enforce typed variables
 rule "terraform_typed_variables" {
   enabled = true
   severity = "ERROR"
 }
 
-rule "terraform_deprecated_resource" {
-  enabled  = true
+# Enterprise: require explicit provider version pinning
+rule "terraform_required_providers" {
+  enabled = true
   severity = "ERROR"
 }
 
-# Enable module scanning
+#########################################
+# TFLINT v0.54+ CONFIG (CRITICAL)
+#########################################
+# Allowed: all, local, none
 config {
   call_module_type = "all"
 }
