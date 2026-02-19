@@ -34,7 +34,7 @@ module "sg" {
   tags          = module.tags
 }
 
-# create key name "myJoyS"
+# create key name 
 module "key" {
   source       = "git::ssh://git@github.com/sat2008/git_modules.git//key"
   key_out_path = "${path.root}/terraform/key.pem"

@@ -1,15 +1,12 @@
-name: Terraform Plan
+name: Terraform Plan + TFLint
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
+  push:
+    branches: [ main ]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment'
-        required: false
-        default: 'dev'
+
 env:
   AWS_REGION: eu-west-2
   TF_IN_AUTOMATION: true
@@ -20,44 +17,52 @@ permissions:
   pull-requests: write
 
 jobs:
-  terraform-plan:
-    name: Terraform Plan (PR)
+  terraform:
+    name: Terraform Plan + TFLint
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repo
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup SSH key for GitHub modules
+      # 2. Setup SSH key for modules
+      - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      - name: Configure AWS credentials (OIDC)
+      # 3. Configure AWS OIDC
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
           aws-region: ${{ env.AWS_REGION }}
 
+      # 4. Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # 5. Init
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
 
+      # 6. Validate
       - name: Terraform Validate
         working-directory: terraform
         run: terraform validate
 
+      # 7. Plan
       - name: Terraform Plan
         id: plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
+        run: terraform plan -var-file="terraform.tfvars" -lock=false -out=tfplan.binary
 
-      - name: Show Terraform Plan in PR
+      # 8. Post Plan in PR
+      - name: Post Terraform Plan as PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: "Terraform Plan"
@@ -65,3 +70,54 @@ jobs:
             ```terraform
             ${{ steps.plan.outputs.stdout }}
             ```
+
+      # 9. Install TFLint
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      # 10. Run TFLint init (plugin download)
+      - name: Initialize TFLint Plugins
+        working-directory: terraform
+        run: tflint --init
+
+      # 11. Run TFLint and capture issues
+      - name: Run TFLint
+        id: tflint
+        working-directory: terraform
+        run: |
+          tflint --format json | tee tflint.json
+
+          # Extract human-friendly issues
+          jq -r '
+            .issues[]? |
+            if .severity=="ERROR"
+            then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))"
+            else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))"
+            end
+          ' tflint.json > tflint-issues.txt
+
+          # Extract plugin failures
+          jq -r '.errors[]? | "❌ ERROR: \(.message)"' tflint.json >> tflint-issues.txt
+
+          cat tflint-issues.txt
+
+      # 12. Post TFLint to PR
+      - name: Post TFLint Results to PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "TFLint Results"
+          message: |
+            ```text
+            ${{ steps.tflint.outputs.stdout }}
+            ```
+
+      # 13. Fail workflow on error
+      - name: Fail on TFLint Errors
+        working-directory: terraform
+        run: |
+          if grep -q "❌ ERROR" tflint-issues.txt; then
+            echo "TFLint detected errors."
+            exit 1
+          else
+            echo "No TFLint errors found."
+          fi
