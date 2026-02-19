@@ -26,5 +26,5 @@ rule "terraform_deprecated_resource" {
 
 # Enable module scanning
 config {
-  module = true
+  call_module_type = "terraform"
 }
