@@ -39,6 +39,9 @@ variable "instance_type" {
 }
 variable "ami" {type = string}
 #variable "key" {}
-variable "root_size" {}
+variable "root_size" {
+  type    = number
+  default = null
+}
 #variable "kms" {}
 #variable "kms_ebs" {}
