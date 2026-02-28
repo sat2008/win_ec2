@@ -23,6 +23,7 @@ permissions:
   contents: read
   pull-requests: write
 
+# Ensures only one workflow per branch runs at a time.If a new run starts, previous runs for the same branch are canceled automatically.
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
@@ -76,7 +77,8 @@ jobs:
             ```terraform
             ${{ steps.plan.outputs.stdout }}
             ```
-
+  #Only runs when manually triggered via Actions → Run workflow.The confirm_apply input must equal yes.
+  # This mimics a “manual approval” process on Free GitHub.
   terraform-apply:
     name: Terraform Apply (Manual)
     runs-on: ubuntu-latest
