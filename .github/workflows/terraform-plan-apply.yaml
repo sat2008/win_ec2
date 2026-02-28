@@ -139,6 +139,9 @@ jobs:
         working-directory: terraform
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
 
+      - name: List Terraform folder
+        run: ls -al terraform
+        
       - name: Upload EC2 Private Key
         uses: actions/upload-artifact@v4
         with:
