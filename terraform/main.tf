@@ -57,7 +57,7 @@ module "windows_ec2" {
   key               = module.key
   tags              = module.tags
   additional_disks  = var.additional_disks
-  instance_profile  = module.iam.instance_profile
+  instance_profile  = module.iam.instance_profile #ssm role attahed
   security_group_id = module.sg.security_group_id #tolist([module.son_sg.id]) tolist([module.son_sg.id])
   #ebs_size                    = var.ebs_size
   deletion_protection         = false #var.ec2s.win01.deletion_protection
