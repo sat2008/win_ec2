@@ -1,4 +1,4 @@
-name: Terraform CI/CD Plan + Manual Apply
+name: Terraform CI/CD Plan-Apply
 
 on:
   pull_request:
@@ -8,11 +8,6 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      confirm_apply:
-        description: 'Type "yes" to run Terraform Apply'
-        required: true
-        default: 'no'
 
 env:
   AWS_REGION: eu-west-2
@@ -31,7 +26,6 @@ jobs:
   terraform-plan:
     name: Terraform Plan (PR)
     runs-on: ubuntu-latest
-    if: github.event_name != 'workflow_dispatch'  # skip when manually triggering Apply
 
     steps:
       - name: Checkout Repo
@@ -66,21 +60,56 @@ jobs:
         working-directory: terraform
         run: terraform plan -var-file="terraform.tfvars" -out=tfplan.binary
 
-      # TFLint steps omitted for brevity (you can keep them as in your current workflow)
+      # ---------------------------
+      # TFLint checks
+      # ---------------------------
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v2
+        with:
+          tflint_version: latest
 
-      - name: Post Plan Results to PR
+      - name: Initialize TFLint Plugins
+        working-directory: terraform
+        run: tflint --init
+
+      - name: Run TFLint
+        id: tflint
+        working-directory: terraform
+        run: |
+          tflint --format json | tee tflint.json
+          jq -r '
+            .issues[] | if .severity=="ERROR" then "❌ ERROR: \(.message) (\(.range.filename):\(.range.start.line))"
+                         else "⚠️ WARNING: \(.message) (\(.range.filename):\(.range.start.line))" end
+          ' tflint.json > tflint-issues.txt
+          jq -r '.errors[] | "❌ ERROR: \(.message)"' tflint.json >> tflint-issues.txt
+          cat tflint-issues.txt
+
+      - name: Fail workflow on TFLint errors
+        run: |
+          if grep -q "❌ ERROR" terraform/tflint-issues.txt; then
+            echo "TFLint detected errors."
+            exit 1
+          fi
+
+      - name: Post Plan + TFLint Results to PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          header: "Terraform Plan"
+          header: "Terraform Plan + TFLint"
           message: |
             ```terraform
             ${{ steps.plan.outputs.stdout }}
             ```
+            ```text
+            $(cat terraform/tflint-issues.txt)
+            ```
 
   terraform-apply:
-    name: Terraform Apply (Manual)
+    name: Terraform Apply (Post-Merge)
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirm_apply == 'yes'
+    needs: terraform-plan       # Waits for Plan to complete
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production          # optional manual approval
 
     steps:
       - name: Checkout Repo
@@ -108,7 +137,10 @@ jobs:
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -var-file="terraform.tfvars"
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+
+      - name: List Terraform folder
+        run: ls -al terraform
 
       - name: Upload EC2 Private Key
         uses: actions/upload-artifact@v4
