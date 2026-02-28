@@ -141,9 +141,9 @@ jobs:
 
       - name: List Terraform folder
         run: ls -al terraform
-        
+
       - name: Upload EC2 Private Key
         uses: actions/upload-artifact@v4
         with:
           name: ec2-private-key
-          path: terraform/key.pem
+          path: terraform/terraform/key.pem
