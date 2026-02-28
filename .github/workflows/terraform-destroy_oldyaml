@@ -1,7 +1,7 @@
 name: Terraform Destroy
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # Manual trigger
     inputs:
       confirm:
         description: 'Type "yes" to confirm destroy'
@@ -17,7 +17,7 @@ permissions:
 
 concurrency:
   group: terraform-destroy-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: false   # Prevent simultaneous destroys
 
 jobs:
   terraform-destroy:
@@ -26,10 +26,11 @@ jobs:
     if: ${{ github.event.inputs.confirm == 'yes' }}
 
     steps:
-
+      # 1️⃣ Checkout repository
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup SSH key for private modules
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
@@ -37,30 +38,41 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
+      # 3️⃣ Configure AWS credentials (OIDC)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::508261694247:role/GithubTerraformRole
           aws-region: ${{ env.AWS_REGION }}
 
+      # 4️⃣ Setup Terraform CLI
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # IMPORTANT: Use -reconfigure and do NOT override backend
-      - name: Terraform Init (matches backend in code)
+      # 5️⃣ Terraform Init with remote backend
+      - name: Terraform Init
         working-directory: terraform
-        run: terraform init -reconfigure
+        run: |
+          terraform init \
+            -backend-config="bucket=terraform-state-repo-sg" \
+            -backend-config="key=git/winec2/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=terraform-locks"
 
-      - name: Terraform Plan Destroy
+      # 6️⃣ Optional: Show destroy plan before execution
+      - name: Terraform Plan for Destroy
         working-directory: terraform
-        run: terraform plan -destroy -var-file="terraform.tfvars" -out=tfplan.destroy
+        run: |
+          terraform plan -destroy -var-file="terraform.tfvars" -out=tfplan.destroy | tee destroy-plan.log
 
+      # 7️⃣ Terraform Destroy
       - name: Terraform Destroy
         working-directory: terraform
-        run: terraform apply -auto-approve tfplan.destroy
+        run: terraform apply -auto-approve tfplan.destroy | tee destroy.log
 
+      # 8️⃣ Upload logs as artifact
       - name: Upload Destroy Logs
         uses: actions/upload-artifact@v4
         with:
-          name: destroy-logs
-          path: terraform/
+          name: terraform-destroy-logs
+          path: terraform/destroy.log, terraform/destroy-plan.log
