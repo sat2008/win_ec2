@@ -1,3 +1,4 @@
+vpc_id = "vpc-00b1d754e3dcf565d" # "vpc-013f436261a3d2c8a" # eu-west-1 
 region      = "us-east-1"
 #environment = "dev"
 #profile = "terra"  

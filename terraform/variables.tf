@@ -1,7 +1,7 @@
-# variable "vpc_id" {
-#   description = "Existing VPC ID to deploy EC2 into"
-#   type        = string
-# }
+variable "vpc_id" {
+  description = "Existing VPC ID to deploy EC2 into"
+  type        = string
+}
 
 variable "region" {
   type    = string
