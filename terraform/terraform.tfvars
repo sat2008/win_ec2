@@ -1,6 +1,11 @@
-#vpc_id = "vpc-00b1d754e3dcf565d"  # us-east-1
-vpc_id =  "vpc-013f436261a3d2c8a" # eu-west-1 
-region      = "eu-west-2" # "us-east-1"
+##### US EAST 1 #######
+vpc_id = "vpc-00b1d754e3dcf565d"  # us-east-1
+region      = "us-east-1"
+
+  ##### EU WEST 2  London #######
+#vpc_id =  "vpc-013f436261a3d2c8a" # eu-west-1 
+#region      = "eu-west-2" # "us-east-1"
+
 #environment = "dev"
 #profile = "terra"  
 

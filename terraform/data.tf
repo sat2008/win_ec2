@@ -11,16 +11,31 @@ data "aws_vpc" "existing" {
    provider = aws.terra
   
 }
+# --------------------------------------------------
+# Look up existing private subnets
+# --------------------------------------------------
+data "aws_subnets" "private" {
+  # filter {
+  #   name   = [data.aws_vpc.existing.Name]
+  #   values = [data.aws_vpc.existing.id]
+  # }
+
+  filter {
+    name   = "tag:Name"
+    values = ["*private*"]  # if you tag subnets as Public/Private
+  }
+  provider = aws.terra
+}
 
 # --------------------------------------------------
 # Look up existing public subnets
 # --------------------------------------------------
 data "aws_subnets" "public" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.existing.id]
+  # filter {
+  #   name   = [data.aws_vpc.existing.Name]
+  #   values = [data.aws_vpc.existing.id]
     
-  }
+  # }
 
   filter {
     name   = "tag:Name"
@@ -29,21 +44,7 @@ data "aws_subnets" "public" {
   provider = aws.terra
 }
 
-# --------------------------------------------------
-# Look up existing private subnets
-# --------------------------------------------------
-data "aws_subnets" "private" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.existing.id]
-  }
 
-  filter {
-    name   = "tag:Name"
-    values = ["*private*"]  # if you tag subnets as Public/Private
-  }
-  provider = aws.terra
-}
 
 # data "aws_kms_key" "ebs" {
 #     provider = aws.sg
