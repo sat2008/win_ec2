@@ -54,7 +54,7 @@ module "windows_ec2" {
   instance_type = var.instance_type
   subnet_id     = data.aws_subnets.private.ids[0] # pick first private
   #vpc_id             = data.aws_vpc.existing.id
-  key               = module.key
+  key               = module.key.key_name
   tags              = module.tags
   additional_disks  = var.additional_disks
   instance_profile  = module.iam.instance_profile #ssm role attahed
