@@ -21,7 +21,7 @@ module "iam" {
   #   aws = aws.terra
   # }
 
-  tags = module.tags.tags.name
+  tags = module.tags.tags
 }
 #security group  "sg"
 module "sg" {
@@ -31,7 +31,7 @@ module "sg" {
 
   ingress_rules = var.ingress_rules
   egress_rules  = var.egress_rules
-  tags          = module.tags.tags.name
+  tags          = module.tags.tags
 }
 
 # create key name 
