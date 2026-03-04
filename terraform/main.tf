@@ -22,6 +22,7 @@ module "iam" {
   # }
 
   tags = module.tags.tags
+  tag_name = module.tags.tag_name #pass the tag_name seperatly 
 }
 #security group  "sg"
 module "sg" {
@@ -32,6 +33,7 @@ module "sg" {
   ingress_rules = var.ingress_rules
   egress_rules  = var.egress_rules
   tags          = module.tags.tags
+  tag_name = module.tags.tag_name #pass the tag_name seperatly 
 }
 
 # create key name 
