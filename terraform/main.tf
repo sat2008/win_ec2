@@ -31,7 +31,7 @@ module "sg" {
 
   ingress_rules = var.ingress_rules
   egress_rules  = var.egress_rules
-  tags          = module.tags.name
+  tags          = module.tags.tags.name
 }
 
 # create key name 
