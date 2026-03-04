@@ -21,7 +21,7 @@ module "iam" {
   #   aws = aws.terra
   # }
 
-  tags = module.tags.tags
+  tags = module.tags.tags.name
 }
 #security group  "sg"
 module "sg" {
