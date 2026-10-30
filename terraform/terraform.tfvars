@@ -44,7 +44,7 @@ egress_rules = [
 ]
 
 instance_type = "t3.micro"
-ami           = "ami-0ec9cfdee93464c02" # eu-wast-2  aim win2025  
+ami           = "ami-0e3f0901d06219a25" # eu-wast-2  aim win2025  
 #ami           = "ami-031283482dcfced88" #"us-west-1 aim win2025
 root_size = "40"
 
