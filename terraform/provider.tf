@@ -12,12 +12,12 @@
 #     tags = module.tags.tags
 #   }
 # }
-# provider "aws" {
-#   alias  = "terra"  
-#   region = var.region
-# }
 provider "aws" {
-  alias  = "terra"
+  alias  = "terra"  
+  region = var.region
+}
+provider "aws" {
+  alias  = "terra" 
   region = var.region
   profile = "terra"
   assume_role {

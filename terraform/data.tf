@@ -1,3 +1,12 @@
+# In Terraform, data "aws_caller_identity" and data "aws_partition" are Data Sources 
+# like a dynamic, read-only variables that fetch system data automatically 
+#when you run terraform plan or terraform apply.
+# =================================================================
+# 1. GLOBAL DATA SOURCES (Define once per module)
+# =================================================================
+data "aws_caller_identity" "current" {}
+data "aws_partition" "current" {}
+
 # --------------------------------------------------
 # Look up existing VPC by ID or Name *****
 # --------------------------------------------------
@@ -8,8 +17,7 @@ data "aws_vpc" "existing" {
   #   name   = "tag:Name"
   #   values = [var.vpc_name]
   # }
-   provider = aws.terra
-  
+  # provider = aws.terra  
 }
 # --------------------------------------------------
 # Look up existing private subnets
