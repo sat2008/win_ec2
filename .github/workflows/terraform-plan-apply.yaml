@@ -1,10 +1,10 @@
 name: Terraform CI/CD Plan + Manual Apply
 
-on:
-  pull_request:
+on: 
+  push: # on -> push activated when the code changes pushed to the branch 
     branches:
       - main
-  push:
+  pull_request: # on -> pull_request activated when a PR is opened or updated
     branches:
       - main
   workflow_dispatch:
@@ -13,15 +13,14 @@ on:
         description: 'Type "yes" to run Terraform Apply'
         required: true
         default: 'no'
-
 env:
   AWS_REGION: eu-west-2
   TF_IN_AUTOMATION: true
 
-permissions:
+permissions: # give only access for what is required Least privilege 
   id-token: write
   contents: read
-  pull-requests: write
+  pull-requests: write # All other scopes default to 'none'
 
 # Ensures only one workflow per branch runs at a time.If a new run starts, previous runs for the same branch are canceled automatically.
 concurrency:
@@ -113,7 +112,7 @@ jobs:
         run: terraform apply -var-file="terraform.tfvars" -auto-approve
 
       - name: Upload EC2 Private Key
-        uses: actions/upload-artifact@v4
+        uses: actions/d-artifact@v4 # handles sensitive data properly by specifying a highly restrictive retention-days: 1 limit.
         with:
           name: ec2-private-key
           path: terraform/terraform/key.pem
