@@ -1,21 +1,8 @@
-# provider "aws" {
-#   region  = var.region
-#   profile = var.profile 
-#   alias = "terra"    # need for deploymnet provide block under resource
-# }
 
 # provider "aws" {
+#   alias  = "terra"  
 #   region = var.region
-#   profile = "terra"
-#   alias = "terra"    # need for deploymnet provide block under resource
-#     default_tags {
-#     tags = module.tags.tags
-#   }
 # }
-provider "aws" {
-  alias  = "terra"  
-  region = var.region
-}
 provider "aws" {
   alias  = "terra" 
   region = var.region
