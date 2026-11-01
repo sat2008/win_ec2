@@ -11,7 +11,7 @@
 #     default_tags {
 #     tags = module.tags.tags
 #   }
-}
+# }
 # provider "aws" {
 #   alias  = "terra"  
 #   region = var.region
