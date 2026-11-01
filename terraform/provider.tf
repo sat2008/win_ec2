@@ -7,6 +7,7 @@
 provider "aws" {
   region = var.region
   profile = "terra"
+  alias = "terra"    # need for deploymnet provide block under resource
     default_tags {
     tags = module.tags.tags
   }
