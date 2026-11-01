@@ -32,7 +32,7 @@ data "aws_subnets" "private" {
     name   = "tag:Name"
     values = ["*private*"]  # if you tag subnets as Public/Private
   }
-  provider = aws.terra
+ # provider = aws.terra
 }
 
 # --------------------------------------------------
@@ -49,7 +49,7 @@ data "aws_subnets" "public" {
     name   = "tag:Name"
     values = ["dev-public-0"]  # if you tag subnets as Public/Private
   }
-  provider = aws.terra
+  #provider = aws.terra
 }
 
 
