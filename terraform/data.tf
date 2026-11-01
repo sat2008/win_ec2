@@ -4,7 +4,7 @@
 # =================================================================
 # 1. GLOBAL DATA SOURCES (Define once per module)
 # =================================================================
-data "aws_caller_identity" "current" {}
+#data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 # --------------------------------------------------
